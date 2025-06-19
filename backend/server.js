@@ -6,6 +6,8 @@ import Contact from "./models/Contact.js";
 import jwt from "jsonwebtoken";
 import Cart from "./models/Cart.js";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+dotenv.config();
 
 //.....................................................
 const app = express();
@@ -14,7 +16,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["PUT", "POST", "DELETE", "GET", "PATCH"],
     credentials: true, 
   })
@@ -40,7 +42,7 @@ const verifyToken = (req, res, next) => {
 };
 
 
-mongoose.connect("mongodb://localhost:27017/Employee");
+mongoose.connect(process.env.MONGO_URL);  
 
 
 //..................Login.................................
@@ -173,7 +175,7 @@ app.get("/orders/:userEmail", async (req, res) => {
 
 
 //...............................................................................................................//
-
-app.listen(3001, () => {
-  console.log("server is running");
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log("server is running on port", port);
 });

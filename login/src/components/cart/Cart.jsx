@@ -138,7 +138,7 @@ const Cart = () => {
         return;
       }
       axios.defaults.withCredentials = true;
-      const response = await axios.post("http://localhost:3001/cart", {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart`, {
         productId: item.id,
         name: item.name,
         description: item.description,

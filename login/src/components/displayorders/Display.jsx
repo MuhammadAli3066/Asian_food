@@ -13,7 +13,7 @@ const Display = () => {
     const fetchOrders = async () => {
       if (isAuthenticated && user?.email) {
         try {
-          const response = await axios.get(`http://localhost:3001/orders/${user.email}`);
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/orders/${user.email}`);
           setOrders(response.data); 
         } catch (err) {
           setError("Failed to fetch orders. Please try again.");
