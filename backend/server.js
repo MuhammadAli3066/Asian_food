@@ -2,21 +2,19 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import Employee from "./models/Employee.js";
-import Contact from "./models/Contact.js";
 import jwt from "jsonwebtoken";
-import Cart from "./models/Cart.js";
 import cookieParser from "cookie-parser";
-
+import Favorite from "./models/Favorite.js";
+import Favoritebook from "./models/Favoritebook.js";
 //.....................................................
 const app = express();
 app.use(express.json());
-app.use(cookieParser()); 
-
+app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:5173",
     methods: ["PUT", "POST", "DELETE", "GET", "PATCH"],
-    credentials: true, 
+    credentials: true,
   })
 );
 
@@ -31,7 +29,7 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, "JWT_SECRET_alikhan");
-    req.user = decoded; 
+    req.user = decoded;
     next();
   } catch (error) {
     console.error("Token verification failed:", error);
@@ -39,10 +37,15 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+// mongoose.connect("mongodb://localhost:27017/Employee");
 
-mongoose.connect("mongodb://localhost:27017/Employee");
-
-
+mongoose
+  .connect("mongodb://localhost:27017/Employee", {})
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => {
+    console.error("Database connection error:", err);
+    process.exit(1); // Exit the process if the connection fails
+  });
 //..................Login.................................
 
 app.post("/login", (req, res) => {
@@ -56,8 +59,8 @@ app.post("/login", (req, res) => {
             expiresIn: "1d",
           });
           res.cookie("token", token, {
-            httpOnly: true, 
-            secure: process.env.NODE_ENV === "production", 
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
             maxAge: 24 * 60 * 60 * 1000,
           });
@@ -88,8 +91,6 @@ app.post("/login", (req, res) => {
     });
 });
 
-
-
 //..............................................................................................................//
 
 //.........................register...............................
@@ -100,80 +101,126 @@ app.post("/register", (req, res) => {
     .catch((err) => res.json(err));
 });
 
-
-
 //...............................................................................................................//
 
-//......................... CONTACT ...............................
-app.post("/contact", async (req, res) => {
+app.post("/favorites", async (req, res) => {
   try {
-    const { name, email, message } = req.body;
-    if (!name || !email || !message) {
-      return res.status(400).json({ error: "All fields are required." });
-    }
+    const { name, rating, description, link, email } = req.body;
 
-    const newContact = new Contact({ name, email, message });
-    await newContact.save();
-
-    res.status(201).json({ message: "Contact data saved successfully!" });
-  } catch (error) {
-    console.error("Error saving contact data:", error.message);
-    res
-      .status(500)
-      .json({ error: "Failed to save contact data. Please try again later." });
-  }
-});
-
-//.....................................................................................................................//
-
-//...............cart...................................
-
-app.post("/cart", async (req, res) => {
-  try {
-    const { productId, name, description, price, image, username, email } =
-      req.body;
-      console.log(req.cookies.token); 
-    if (!productId || !name || !description || !price || !image) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    const newCartItem = new Cart({
-      productId,
+    // Create new favorite entry
+    const newFavorite = new Favorite({
       name,
+      rating,
       description,
-      price,
-      image,
-      username,
+      link,
       email,
     });
 
-    await newCartItem.save();
+    // Save to database
+    await newFavorite.save();
 
-    res.status(201).json({ message: "Item added to cart successfully!" });
+    res
+      .status(201)
+      .json({ message: "Favorite added successfully", newFavorite });
   } catch (error) {
-    console.error("Error adding cart item:", error.message);
-    res.status(500).json({ message: "Failed to add item to cart" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
+//........................favbooks.................................//
 
-//............................get.....................
-app.get("/orders/:userEmail", async (req, res) => {
+app.post("/books", async (req, res) => {
+  const { name, rating, description, image, link, email } = req.body;
+
   try {
-    // Fetch all orders for the specified user from the database
-    const orders = await Cart.find({ email: req.params.userEmail }); // Match the schema field
-    res.status(200).json(orders);
+    // Check if the book already exists for the user to avoid duplicates
+    const existingBook = await Favoritebook.findOne({ name, email });
+    if (existingBook) {
+      return res.status(400).json({ message: "Book already in favorites." });
+    }
+
+    // Create and save the new book to the database
+    const newBook = new Favoritebook({
+      name,
+      rating,
+      description,
+      image,
+      link,
+      email,
+    });
+    await newBook.save();
+    res.status(200).json(newBook);
   } catch (error) {
-    console.error("Error fetching orders:", error.message);
-    res.status(500).json({ message: "Failed to fetch orders" });
+    console.error("Error adding book to favorites:", error);
+    res
+      .status(500)
+      .json({ message: "Error adding book", error: error.message });
+  }
+});
+//......................get for favorites......................//
+app.get("/favorites", async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Debugging: Log email to check the request
+    console.log("Fetching favorites for email:", email);
+
+    const favorites = await Favorite.find({ email });
+
+    // Debugging: Log fetched favorites
+    console.log("Fetched favorites:", favorites);
+
+    if (!favorites.length) {
+      return res
+        .status(404)
+        .json({ message: "No favorites found for this email" });
+    }
+
+    res.json(favorites);
+  } catch (error) {
+    console.error("Error fetching favorites:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+//.................get req for books ...............//
+
+app.get("/books", async (req, res) => {
+  const { email } = req.query;
+  try {
+    const favoriteBooks = await Favoritebook.find({ email });
+    res.status(200).json(favoriteBooks);
+  } catch (error) {
+    console.error("Error fetching favorite books:", error);
+    res.status(500).json({ message: "Error fetching favorite books" });
+  }
+});
+//................delete router....................//
+app.delete("/favorites/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Favorite.findByIdAndDelete(id);
+    res.json({ message: "Favorite removed successfully" });
+  } catch (error) {
+    console.error("Error removing favorite:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-
-//...............................................................................................................//
-
+app.delete("/books/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await Favoritebook.findByIdAndDelete(id);
+    res.status(200).json({ message: "Book removed from favorites" });
+  } catch (error) {
+    console.error("Error removing favorite book:", error);
+    res.status(500).json({ message: "Error removing favorite book" });
+  }
+});
+//............................................................//
 app.listen(3001, () => {
   console.log("server is running");
 });

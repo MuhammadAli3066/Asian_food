@@ -1,132 +1,92 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React from "react";
 import Navigation from "../navigation/Navigation";
+import Footer from "../footer/Footer";
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post(
-        "http://localhost:3001/contact",
-        formData
-      );
-
-      if (response.status === 201) {
-        setIsSubmitted(true);
-
-        setFormData({
-          name: "",
-          email: "",
-          message: "",
-        });
-
-        setTimeout(() => {
-          setIsSubmitted(false);
-        }, 3000);
-      } else {
-        setError("Failed to send your message. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting contact form:", error);
-      setError("Please enter another email");
-    }
+const Contact = ({ theme, changeTheme }) => {
+  // Define theme-specific styles
+  const themeStyles = {
+    purple: "text-purple-400 bg-purple-900",
+    blue: "text-blue-400 bg-blue-900",
+    grey: "text-gray-400 bg-gray-800",
+    pink: "text-pink-400 bg-pink-900",
   };
 
   return (
-    <>
+    <div className={`min-h-screen flex flex-col ${themeStyles[theme]}`}>
+      {/* Navbar Component */}
       <Navigation />
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-slate-400 via-slate-500 to-slate-300 p-4">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full transition-transform transform hover:scale-105 duration-300 ease-in-out"
-        >
-          <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">
-            Contact Us
-          </h2>
-          {isSubmitted && (
-            <p className="text-green-600 text-center mb-4">
-              Thank you for contacting us!
-            </p>
-          )}
-          {error && <p className="text-red-600 text-center mb-4">{error}</p>}{" "}
-          <div className="mb-4">
-            <label
-              htmlFor="name"
-              className="block text-lg font-medium text-gray-700 mb-2"
+
+      {/* Floating Theme Toggle Button */}
+      <button
+        onClick={changeTheme}
+        className="fixed bottom-8 right-8  bg-white text-purple-950 font-bold rounded-md hover:bg-black hover:text-white p-2"
+        aria-label="Change Theme"
+      >
+        Click me
+      </button>
+
+      {/* Main Content */}
+      <div className="flex-grow container mx-auto px-6 py-12">
+        {/* Heading */}
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold">Contact Us</h1>
+          <p className="text-lg md:text-xl mt-4">
+            Have questions or feedback? We'd love to hear from you.
+          </p>
+        </div>
+
+        {/* Contact Form */}
+        <div className="max-w-2xl mx-auto">
+          <form className="space-y-6">
+            <div>
+              <label htmlFor="name" className="block text-lg font-medium mb-2">
+                Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="w-full px-4 py-2 rounded-md bg-gray-100 text-black"
+                placeholder="Your Name"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-lg font-medium mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                className="w-full px-4 py-2 rounded-md bg-gray-100 text-black"
+                placeholder="Your Email"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="message"
+                className="block text-lg font-medium mb-2"
+              >
+                Message
+              </label>
+              <textarea
+                id="message"
+                className="w-full px-4 py-2 rounded-md bg-gray-100 text-black"
+                placeholder="Your Message"
+                rows="4"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-white text-purple-950 font-bold rounded-md hover:bg-black hover:text-white"
             >
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border-2 border-blue-300 rounded-md focus:outline-none focus:border-blue-600 transition duration-200 ease-in-out"
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="email"
-              className="block text-lg font-medium text-gray-700 mb-2"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border-2 border-blue-300 rounded-md focus:outline-none focus:border-blue-600 transition duration-200 ease-in-out"
-            />
-          </div>
-          <div className="mb-6">
-            <label
-              htmlFor="message"
-              className="block text-lg font-medium text-gray-700 mb-2"
-            >
-              Message
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border-2 border-blue-300 rounded-md focus:outline-none focus:border-blue-600 transition duration-200 ease-in-out"
-              rows="5"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md text-lg font-semibold hover:bg-blue-700 focus:bg-blue-800 transition duration-300 ease-in-out"
-          >
-            Send Message
-          </button>
-        </form>
+              Submit
+            </button>
+          </form>
+        </div>
       </div>
-    </>
+
+      {/* Footer Component */}
+      <Footer />
+    </div>
   );
 };
 
