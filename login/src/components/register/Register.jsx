@@ -21,7 +21,7 @@ const Register = () => {
     setErrorMessage("");
 
     axios
-      .post("http://localhost:3001/register", { name, email, password })
+      .post(`${import.meta.env.VITE_API_URL}/register`, { name, email, password })
       .then((result) => {
         setSuccessMessage("You have successfully registered!");
         setTimeout(() => {

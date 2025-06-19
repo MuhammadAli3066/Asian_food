@@ -2,6 +2,7 @@ import React from "react";
 import Navigation from "../navigation/Navigation";
 import Footer from "../footer/Footer";
 
+<<<<<<< HEAD
 const Contact = ({ theme, changeTheme }) => {
   // Define theme-specific styles
   const themeStyles = {
@@ -9,6 +10,54 @@ const Contact = ({ theme, changeTheme }) => {
     blue: "text-blue-400 bg-blue-900",
     grey: "text-gray-400 bg-gray-800",
     pink: "text-pink-400 bg-pink-900",
+=======
+const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/contact`,
+        formData
+      );
+
+      if (response.status === 201) {
+        setIsSubmitted(true);
+
+        setFormData({
+          name: "",
+          email: "",
+          message: "",
+        });
+
+        setTimeout(() => {
+          setIsSubmitted(false);
+        }, 3000);
+      } else {
+        setError("Failed to send your message. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      setError("Please enter another email");
+    }
+>>>>>>> 1a720f295611f49ac384cc01492b372ddc21057e
   };
 
   return (

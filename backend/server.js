@@ -4,15 +4,21 @@ import cors from "cors";
 import Employee from "./models/Employee.js";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+<<<<<<< HEAD
 import Favorite from "./models/Favorite.js";
 import Favoritebook from "./models/Favoritebook.js";
+=======
+import dotenv from "dotenv";
+dotenv.config();
+
+>>>>>>> 1a720f295611f49ac384cc01492b372ddc21057e
 //.....................................................
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["PUT", "POST", "DELETE", "GET", "PATCH"],
     credentials: true,
   })
@@ -39,6 +45,7 @@ const verifyToken = (req, res, next) => {
 
 // mongoose.connect("mongodb://localhost:27017/Employee");
 
+<<<<<<< HEAD
 mongoose
   .connect("mongodb://localhost:27017/Employee", {})
   .then(() => console.log("Connected to MongoDB"))
@@ -46,6 +53,11 @@ mongoose
     console.error("Database connection error:", err);
     process.exit(1); // Exit the process if the connection fails
   });
+=======
+mongoose.connect(process.env.MONGO_URL);  
+
+
+>>>>>>> 1a720f295611f49ac384cc01492b372ddc21057e
 //..................Login.................................
 
 app.post("/login", (req, res) => {
@@ -210,6 +222,7 @@ app.delete("/favorites/:id", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 app.delete("/books/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -223,4 +236,13 @@ app.delete("/books/:id", async (req, res) => {
 //............................................................//
 app.listen(3001, () => {
   console.log("server is running");
+=======
+
+
+
+//...............................................................................................................//
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log("server is running on port", port);
+>>>>>>> 1a720f295611f49ac384cc01492b372ddc21057e
 });
